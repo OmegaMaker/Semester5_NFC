@@ -7,3 +7,4 @@ reader.info()
 
 UID = reader.get_uid()
 
+Send = {"uid": UID}

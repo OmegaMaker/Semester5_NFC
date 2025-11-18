@@ -48,4 +48,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD ["python", "scan-handler"]
+CMD ["python","receiver.py"]
