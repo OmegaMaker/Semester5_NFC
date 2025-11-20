@@ -1,18 +1,18 @@
 steps:
-
 # 1. Build the Docker image
 - name: gcr.io/cloud-builders/docker
+  id: Build
   args:
     [
       "build",
       "-f",
       "Test1/Dockerfile",
       "-t",
-      "europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/static-site:$SHORT_SHA",
+      "europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA",
       "."
     ]
 
-# 2. Push the image to Artifact Registry
+# 2. Push the Docker image to Artifact Registry
 - name: gcr.io/cloud-builders/docker
   id: Push
   args:
@@ -21,32 +21,31 @@ steps:
       "europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA"
     ]
 
-# Get Credentials
+# 3. Get GKE cluster credentials
 - name: gcr.io/cloud-builders/gcloud
-  id: Get Credentials
+  id: Get-Credentials
   args:
     [
       "container",
       "clusters",
       "get-credentials",
-      "nfc-1",
+      "$_CLUSTER_NAME",
       "--zone",
-      "europe-north2b",
+      "$_CLUSTER_LOCATION",
       "--project",
       "$PROJECT_ID"
     ]
 
-
-# 3. Update the image in kustomize
+# 4. Update image in Kustomize
 - name: gcr.io/cloud-builders/kubectl
-  id: Kustomize Replace Image
+  id: Kustomize-Replace-Image
   entrypoint: "bash"
   args:
     - "-c"
     - |
-      kustomize edit set image static-site=europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA
+      kustomize edit set image receiver=europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA
 
-# 4. Deploy to GKE
+# 5. Apply the deployment
 - name: gcr.io/cloud-builders/kubectl
   id: Deploy
   args:
@@ -56,24 +55,22 @@ steps:
       "."
     ]
 
-# 5. Wait for rollout
+# 6. Wait for rollout
 - name: gcr.io/cloud-builders/kubectl
-  id: Wait Rollout
+  id: Wait-Rollout
   args:
     [
       "rollout",
       "status",
-      "deployment/gke-test",
+      "deployment/receiver"
     ]
 
 substitutions:
   _CLUSTER_NAME: "nfc-1"
   _CLUSTER_LOCATION: "europe-north2b"
 
-# GKE permissions
 options:
   logging: CLOUD_LOGGING_ONLY
 
-# GKE auth
+# Service account with GKE permissions
 serviceAccount: $PROJECT_ID@appspot.gserviceaccount.com
-

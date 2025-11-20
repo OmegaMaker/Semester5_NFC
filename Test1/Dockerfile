@@ -1,32 +1,41 @@
 # syntax=docker/dockerfile:1
 
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Dockerfile reference guide at
-# https://docs.docker.com/go/dockerfile-reference/
-
-# Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
-
+# ------------------------------
+# Stage 1: Builder
+# ------------------------------
 ARG PYTHON_VERSION=3.12.9
-FROM python:${PYTHON_VERSION}-slim as base
+FROM python:${PYTHON_VERSION}-slim as builder
 
-# Prevents Python from writing pyc files.
+# Prevent Python from writing pyc files
 ENV PYTHONDONTWRITEBYTECODE=1
-
-# Keeps Python from buffering stdout and stderr to avoid situations where
-# the application crashes without emitting any logs due to buffering.
+# Unbuffer stdout/stderr
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+# Install pip dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --user --no-cache-dir -r requirements.txt
 
-
-# Copy the source code into the container.
+# Copy source code
 COPY . .
 
-# Expose the port that the application listens on.
+# ------------------------------
+# Stage 2: Final Runtime
+# ------------------------------
+FROM python:${PYTHON_VERSION}-slim
+
+# Copy Python environment from builder
+ENV PATH=/root/.local/bin:$PATH
+
+WORKDIR /app
+
+# Copy only the app and installed dependencies
+COPY --from=builder /root/.local /root/.local
+COPY --from=builder /app /app
+
+# Expose the application port
 EXPOSE 8000
 
-# Run the application.
-CMD ["python","receiver.py"]
+# Run the application
+CMD ["python", "receiver.py"]
