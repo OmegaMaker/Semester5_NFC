@@ -31,14 +31,14 @@ steps:
     id: Get-Credentials
 
   # Kustomize
-  - name: gcr.io/cloud-builders/kustomize
+  - name: gcr.io/cloud-builders/kustomize:3.8.0
     args:
       - edit
       - set
       - image
       - receiver=europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA
     id: Kustomize-Replace-Image
-    dir: Test1/kubernetes
+    dir: kubernetes/base
 
   # Apply
   - name: gcr.io/cloud-builders/kubectl

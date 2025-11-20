@@ -1,4 +1,4 @@
-# kubernetes/base/service.yaml
+# Test1/kubernetes/base/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -12,4 +12,5 @@ spec:
     - protocol: TCP
       port: 80 # The port the Load Balancer will listen on (standard HTTP)
       targetPort: 8000 # The port your Flask app listens on inside the container
-  type: LoadBalancer # This will create an external IP address for your service
+      name: http # <--- ADD THIS LINE: A unique name for this port
+  type: LoadBalancer
