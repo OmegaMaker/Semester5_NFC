@@ -1,76 +1,65 @@
 steps:
-# 1. Build the Docker image
-- name: gcr.io/cloud-builders/docker
-  id: Build
-  args:
-    [
-      "build",
-      "-f",
-      "Test1/Dockerfile",
-      "-t",
-      "europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA",
-      "."
-    ]
+  # Build
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '-f'
+      - Test1/Dockerfile
+      - '-t'
+      - 'europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA'
+      - Test1
+    id: Build
 
-# 2. Push the Docker image to Artifact Registry
-- name: gcr.io/cloud-builders/docker
-  id: Push
-  args:
-    [
-      "push",
-      "europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA"
-    ]
+  # Push
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - 'europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA'
+    id: Push
 
-# 3. Get GKE cluster credentials
-- name: gcr.io/cloud-builders/gcloud
-  id: Get-Credentials
-  args:
-    [
-      "container",
-      "clusters",
-      "get-credentials",
-      "$_CLUSTER_NAME",
-      "--zone",
-      "$_CLUSTER_LOCATION",
-      "--project",
-      "$PROJECT_ID"
-    ]
+  # Get Credentials
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - container
+      - clusters
+      - get-credentials
+      - $_CLUSTER_NAME
+      - '--zone'
+      - $_CLUSTER_LOCATION
+      - '--project'
+      - $PROJECT_ID
+    id: Get-Credentials
 
-# 4. Update image in Kustomize
-- name: gcr.io/cloud-builders/kubectl
-  id: Kustomize-Replace-Image
-  entrypoint: "bash"
-  args:
-    - "-c"
-    - |
-      kustomize edit set image receiver=europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA
+  # Kustomize
+  - name: gcr.io/cloud-builders/kustomize
+    args:
+      - edit
+      - set
+      - image
+      - receiver=europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA
+    id: Kustomize-Replace-Image
+    dir: Test1/kubernetes
 
-# 5. Apply the deployment
-- name: gcr.io/cloud-builders/kubectl
-  id: Deploy
-  args:
-    [
-      "apply",
-      "-k",
-      "."
-    ]
+  # Apply
+  - name: gcr.io/cloud-builders/kubectl
+    args:
+      - apply
+      - '-k'
+      - Test1/kubernetes
+    id: Deploy
 
-# 6. Wait for rollout
-- name: gcr.io/cloud-builders/kubectl
-  id: Wait-Rollout
-  args:
-    [
-      "rollout",
-      "status",
-      "deployment/receiver"
-    ]
-
-substitutions:
-  _CLUSTER_NAME: "nfc-1"
-  _CLUSTER_LOCATION: "europe-north2b"
+  # Wait 
+  - name: gcr.io/cloud-builders/kubectl
+    args:
+      - rollout
+      - status
+      - deployment/receiver
+    id: Wait-Rollout
+    dir: Test1/kubernetes
 
 options:
   logging: CLOUD_LOGGING_ONLY
-
-# Service account with GKE permissions
-serviceAccount: $PROJECT_ID@appspot.gserviceaccount.com
+  
+substitutions:
+  _CLUSTER_NAME: nfc-1
+  _CLUSTER_LOCATION: europe-north2-b

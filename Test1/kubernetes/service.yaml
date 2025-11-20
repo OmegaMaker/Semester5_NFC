@@ -1,0 +1,15 @@
+# kubernetes/base/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: receiver-service # Name of your Kubernetes Service
+  labels:
+    app: receiver
+spec:
+  selector:
+    app: receiver # Selects pods with the label app: receiver (from your deployment)
+  ports:
+    - protocol: TCP
+      port: 80 # The port the Load Balancer will listen on (standard HTTP)
+      targetPort: 8000 # The port your Flask app listens on inside the container
+  type: LoadBalancer # This will create an external IP address for your service
