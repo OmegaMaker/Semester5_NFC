@@ -2,12 +2,13 @@ steps:
 
 # 1. Build the Docker image
 - name: gcr.io/cloud-builders/docker
-  id: Build
   args:
     [
       "build",
+      "-f",
+      "Test1/Dockerfile",
       "-t",
-      "europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA",
+      "europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/static-site:$SHORT_SHA",
       "."
     ]
 
@@ -72,12 +73,6 @@ substitutions:
 # GKE permissions
 options:
   logging: CLOUD_LOGGING_ONLY
-
-# Connect to GKE before kubectl is used
-availableSecrets:
-  secretManager:
-    - versionName: projects/$PROJECT_ID/secrets/gke-sa-key/versions/latest
-      env: "GKE_SA_KEY"
 
 # GKE auth
 serviceAccount: $PROJECT_ID@appspot.gserviceaccount.com
