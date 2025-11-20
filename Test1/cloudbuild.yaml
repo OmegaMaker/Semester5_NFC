@@ -1,6 +1,6 @@
 steps:
-  # Build
-  - name: gcr.io/cloud-builders/docker
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
     args:
       - build
       - '-f'
@@ -10,15 +10,15 @@ steps:
       - Test1
     id: Build
 
-  # Push
-  - name: gcr.io/cloud-builders/docker
+  # Step 2: Push the Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
     args:
       - push
       - 'europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA'
     id: Push
 
-  # Get Credentials
-  - name: gcr.io/cloud-builders/gcloud
+  # Step 3: Get GKE credentials
+  - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - container
       - clusters
@@ -30,36 +30,59 @@ steps:
       - $PROJECT_ID
     id: Get-Credentials
 
-  # Kustomize
-  - name: gcr.io/cloud-builders/kustomize:3.8.0
+  # Step 4: Delete service if exists (to ensure a clean state for apply)
+  - name: 'gcr.io/cloud-builders/kubectl'
     args:
-      - edit
-      - set
-      - image
-      - receiver=europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA
-    id: Kustomize-Replace-Image
-    dir: kubernetes/base
+      - delete
+      - service
+      - receiver-service
+      - '--namespace=default'
+      - '--ignore-not-found=true' # This prevents the step from failing if the service doesn't exist
+    id: Delete-Service-If-Exists
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
 
-  # Apply
-  - name: gcr.io/cloud-builders/kubectl
+  # Step 5: Apply Deployment and Service Manifests
+  - name: 'gcr.io/cloud-builders/kubectl'
     args:
       - apply
-      - '-k'
-      - Test1/kubernetes
-    id: Deploy
+      - '-f'
+      - 'Test1/kubernetes/deployment.yaml'
+      - '-f'
+      - 'Test1/kubernetes/service.yaml'
+    id: Apply-Manifests
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
 
-  # Wait 
-  - name: gcr.io/cloud-builders/kubectl
+  # Step 6 (Image Update): Update the image of your GKE Deployment
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - set
+      - image
+      - 'deployment/receiver-deployment'
+      - 'receiver-container=europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:$SHORT_SHA'
+      - '--namespace=default'
+    id: Update-Deployment-Image
+    env: 
+      - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+  # Step 7: Wait for the deployment rollout to complete
+  - name: 'gcr.io/cloud-builders/kubectl'
     args:
       - rollout
       - status
-      - deployment/receiver
+      - 'deployment/receiver-deployment'
     id: Wait-Rollout
-    dir: Test1/kubernetes
+    env: 
+      - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
 
 options:
   logging: CLOUD_LOGGING_ONLY
   
 substitutions:
-  _CLUSTER_NAME: nfc-1
   _CLUSTER_LOCATION: europe-north2-b
+  _CLUSTER_NAME: nfc-1
