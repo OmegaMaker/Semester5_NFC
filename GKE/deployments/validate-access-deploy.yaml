@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: validate-access
+  description: THIS IS A TEST
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: validate-access
+  template:
+    metadata:
+      labels:
+        app: validate-access
+    spec:
+      containers:
+      - name: placeholder
+        image: busybox
+        command: ["sh", "-c", "while true; do echo running; sleep 10; done"]
