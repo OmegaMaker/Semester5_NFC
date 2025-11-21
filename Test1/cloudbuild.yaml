@@ -37,7 +37,7 @@ steps:
       - service
       - receiver-service
       - '--namespace=default'
-      - '--ignore-not-found=true' # This prevents the step from failing if the service doesn't exist
+      - '--ignore-not-found=true' 
     id: Delete-Service-If-Exists
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
@@ -56,7 +56,7 @@ steps:
       - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
 
-  # Step 6 (Image Update): Update the image of your GKE Deployment
+  # Step 6: Update the image of your GKE Deployment
   - name: 'gcr.io/cloud-builders/kubectl'
     args:
       - set

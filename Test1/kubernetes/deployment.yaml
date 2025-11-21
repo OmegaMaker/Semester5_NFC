@@ -1,12 +1,12 @@
-# kubernetes/base/deployment.yaml
+# kubernetes/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: receiver-deployment # Name of your deployment
+  name: receiver-deployment # Name of deployment
   labels:
-    app: receiver # Label for your application
+    app: receiver
 spec:
-  replicas: 2 # Start with 2 replicas for basic high availability
+  replicas: 2 # Scale for availability
   selector:
     matchLabels:
       app: receiver
@@ -16,14 +16,12 @@ spec:
         app: receiver
     spec:
       containers:
-      - name: receiver-container # Name of the container within the pod
-        image: europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:latest # Placeholder image. Kustomize will update this.
+      - name: receiver-container
+        image: europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/receiver:latest # Placeholder image
         ports:
-        - containerPort: 8000 # The port your Flask app listens on inside the container
+        - containerPort: 8000 # The port the Flask app listens on inside the container
         # Add any environment variables, resource limits, etc. here if needed
         # env:
-        #   - name: FLASK_ENV
-        #     value: production
         resources:
           requests:
             memory: "128Mi"

@@ -1,16 +1,16 @@
-# Test1/kubernetes/base/service.yaml
+# Test1/kubernetes/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: receiver-service # Name of your Kubernetes Service
+  name: receiver-service # Name of Kubernetes Service
   labels:
     app: receiver
 spec:
   selector:
-    app: receiver # Selects pods with the label app: receiver (from your deployment)
+    app: receiver 
   ports:
     - protocol: TCP
-      port: 80 # The port the Load Balancer will listen on (standard HTTP)
-      targetPort: 8000 # The port your Flask app listens on inside the container
-      name: http # <--- ADD THIS LINE: A unique name for this port
-  type: ClusterIP
+      port: 80 # The port the Service will listen on 
+      targetPort: 8000 # The port the Flask app listens on inside the container
+      name: http # Name needed
+  type: ClusterIP # Can change to LoadBalancer for testing
