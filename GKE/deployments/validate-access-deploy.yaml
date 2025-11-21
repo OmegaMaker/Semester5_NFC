@@ -1,17 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: validate-access
-  description: THIS IS A TEST
+  name: validate-access-test
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: validate-access
+      app: validate-access-test
   template:
     metadata:
       labels:
-        app: validate-access
+        app: validate-access-test
     spec:
       containers:
       - name: placeholder
