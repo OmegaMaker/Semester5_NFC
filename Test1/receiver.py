@@ -11,7 +11,7 @@ def receive_uid():
 
 @app.route("/")
 def index():
-    return "NFC UID Receiver is running. Cloud Build works"
+    return "NFC UID Receiver is running. Cloud Build works!"
 
 
 if __name__ == "__main__":
