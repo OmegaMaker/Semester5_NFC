@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway-ingress
+  namespace: default
+  annotations:
+    # Use the Nginx Ingress Controller
+    kubernetes.io/ingress.class: "nginx"
+    # Optional: Add rewrite rules if your Cloud Run service expects a different path
+    # nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /receiver-api-test # Example path for your microservice
+        pathType: Prefix
+        backend:
+          service:
+            name: api-test-receiver-k8s-service
+            port:
+              number: 80 # The port defined in api-test-receiver-k8s-service.yaml
+      # Add more paths for other microservices here later
+      # - path: /card-management
+      #   pathType: Prefix
+      #   backend:
+      #     service:
+      #       name: card-management-k8s-service
+      #       port:
+      #         number: 80
