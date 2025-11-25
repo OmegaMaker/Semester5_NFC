@@ -4,10 +4,10 @@ steps:
     args:
       - build
       - '-f'
-      - Test1/Dockerfile
+      - test2/Dockerfile
       - '-t'
       - 'europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/sender:$SHORT_SHA'
-      - Test1
+      - test2
     id: Build
 
   # Step 2: Push the Docker image to Artifact Registry
@@ -48,9 +48,9 @@ steps:
     args:
       - apply
       - '-f'
-      - 'Test1/kubernetes/deployment.yaml'
+      - 'test2/kubernetes/deployment.yaml'
       - '-f'
-      - 'Test1/kubernetes/service.yaml'
+      - 'test2/kubernetes/service.yaml'
     id: Apply-Manifests
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
