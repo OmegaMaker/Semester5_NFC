@@ -19,7 +19,7 @@ spec:
       - name: sender-container
         image: europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/sender:latest # Placeholder image
         ports:
-        - containerPort: 8000 # The port the Flask app listens on inside the container
+        - containerPort: 5000 # The port the Flask app listens on inside the container
         # Add any environment variables, resource limits, etc. here if needed
         # env:
         resources:
