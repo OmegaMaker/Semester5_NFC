@@ -1,0 +1,31 @@
+# kubernetes/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sender-deployment # Name of deployment
+  labels:
+    app: sender
+spec:
+  replicas: 2 # Scale for availability
+  selector:
+    matchLabels:
+      app: sender
+  template:
+    metadata:
+      labels:
+        app: sender
+    spec:
+      containers:
+      - name: sender-container
+        image: europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/sender:latest # Placeholder image
+        ports:
+        - containerPort: 8000 # The port the Flask app listens on inside the container
+        # Add any environment variables, resource limits, etc. here if needed
+        # env:
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
