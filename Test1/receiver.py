@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -8,6 +8,18 @@ def receive_uid():
     uid = data.get("uid")
     print(f"[RECEIVER] UID received: {uid}")
     return {"status": "ok"}
+
+@app.route("/authorize", methods=["POST"])
+def authorize():
+    uid = request.get_json().get("uid")
+    if uid == "E9F4687E":
+        return jsonify({
+            "access": True
+        }), 200
+    else:
+        return jsonify({
+            "access": False
+        }), 200
 
 @app.route("/")
 def index():
