@@ -1,4 +1,5 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, jsonify
+import datetime
 
 app = Flask(__name__)
 
@@ -26,6 +27,18 @@ def receive():
     global last_received
     last_received = request.get_data(as_text=True)
     return "OK", 200
+
+@app.route("/card-scan", methods=["POST"])
+def cardScan():
+    uid = request.get_json().get("uid")
+    access = True
+
+    return jsonify({
+        "access": "granted" if access else "denied",
+        "uid" : uid,
+        "time": datetime.datetime.now().isoformat()
+    }), 200
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
