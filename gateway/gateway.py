@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template_string, jsonify
-import requests
+import datetime
 
 app = Flask(__name__)
 
@@ -30,17 +30,13 @@ def receive():
 
 @app.route("/card-scan", methods=["POST"])
 def cardScan():
-    payload = request.get_json()
-    uid = payload.get("uid")
-
-    response = requests.post("http://receiver-service/authorize", json=payload, timeout=5)
-    data = response.json()
-
-    access = data.get("access")
+    uid = request.get_json().get("uid")
+    access = True
 
     return jsonify({
         "access": "granted" if access else "denied",
         "uid" : uid,
+        "time": datetime.datetime.now().isoformat()
     }), 200
 
 
