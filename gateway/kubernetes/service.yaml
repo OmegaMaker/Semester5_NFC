@@ -1,0 +1,16 @@
+# gateway/kubernetes/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service # Name of Kubernetes Service
+  labels:
+    app: gateway
+spec:
+  selector:
+    app: gateway 
+  ports:
+    - protocol: TCP
+      port: 80 # The port the Service will listen on 
+      targetPort: 5000 # The port the Flask app listens on inside the container
+      name: http # Name needed
+  type: LoadBalancer # Can change to LoadBalancer for testing

@@ -1,0 +1,31 @@
+# gateway/kubernetes/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-deployment # Name of deployment
+  labels:
+    app: gateway
+spec:
+  replicas: 2 # Scale for availability
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway-container
+        image: europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/gateway:latest # Placeholder image
+        ports:
+        - containerPort: 5000 # The port the Flask app listens on inside the container
+        # Add any environment variables, resource limits, etc. here if needed
+        # env:
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
