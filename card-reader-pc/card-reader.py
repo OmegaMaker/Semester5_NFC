@@ -5,7 +5,7 @@ from py122u import nfc
 app = Flask(__name__)
 
 # Adress for Gateway receiver in GKC project
-DEFAULT_POST_URL = "http://34.51.221.140/test"
+DEFAULT_POST_URL = "http://34.51.247.142/"
 
 HTML_PAGE = """
 <!DOCTYPE html>
@@ -17,7 +17,7 @@ HTML_PAGE = """
     <form method="POST" action="/send">
         <label>POST Address:</label><br>
         <input type="text" name="address" value="{{ default_url }}" style="width:400px;"><br><br>
-        <button type="submit">Send UID 12345</button>
+        <button type="submit">Send UID</button>
     </form>
 </body>
 </html>
@@ -42,7 +42,7 @@ def send():
 
     try:
         response = requests.post(post_url, json=payload, timeout=5)
-        return f"Sent UID to {post_url}. Response status: {response.status_code}" 
+        return f"Sent UID to {post_url}. Response status: {response.text}" 
     except Exception as e:
         return f"Error sending UID: {e}", 500
 
