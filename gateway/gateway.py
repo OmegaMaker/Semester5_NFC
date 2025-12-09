@@ -34,7 +34,7 @@ def cardScan():
         payload = request.get_json()
         uid = payload.get("uid")
 
-        response = requests.post("http://receiver-service/authorize", json=payload, timeout=2)
+        response = requests.post("http://receiver-service:8000/authorize", json=payload, timeout=2)
         data = response.json()
 
         access = data.get("access")
