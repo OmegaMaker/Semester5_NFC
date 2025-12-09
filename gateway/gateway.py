@@ -1,11 +1,9 @@
 from flask import Flask, request, render_template_string, jsonify
 import requests
 import logging
-import time
 
 app = Flask(__name__)
 
-logging.Formatter.converter = time.localtime
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s"
