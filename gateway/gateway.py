@@ -30,18 +30,26 @@ def receive():
 
 @app.route("/card-scan", methods=["POST"])
 def cardScan():
-    payload = request.get_json()
-    uid = payload.get("uid")
+    try:
+        payload = request.get_json()
+        uid = payload.get("uid")
 
-    response = requests.post("http://receiver-service/authorize", json=payload)
-    data = response.json()
+        response = requests.post("http://receiver-service/authorize", json=payload, timeout=2)
+        data = response.json()
 
-    access = data.get("access")
+        access = data.get("access")
 
-    return jsonify({
-        "access": "granted" if access else "denied",
-        "uid" : uid
-    }), 200
+        return jsonify({
+            "access": "granted" if access else "denied",
+            "uid": uid
+        }), 200
+
+    except Exception as e:
+        print("CARD SCAN ERROR:", repr(e))
+        return jsonify({
+            "error": str(e)
+        }), 500
+
 
 
 if __name__ == "__main__":
