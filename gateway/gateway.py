@@ -1,9 +1,11 @@
 from flask import Flask, request, render_template_string, jsonify
 import requests
 import logging
+import time
 
 app = Flask(__name__)
 
+logging.Formatter.converter = time.localtime
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s"
@@ -47,7 +49,7 @@ def cardScan():
         uid = payload.get("uid")
 
         ip = request.remote_addr
-        logger.info("POST /card-scan from %s | Data: %s", ip, payload)
+        logger.error("POST /card-scan from %s | Data: %s", ip, payload)
 
         if not payload or "uid" not in payload:
             logger.info("Invalid JSON data")
@@ -64,7 +66,7 @@ def cardScan():
         }), 200
 
     except Exception as e:
-        logger.info("Error with card scan")
+        logger.error("Error with card scan")
         print("CARD SCAN ERROR:", repr(e))
         return jsonify({
             "error": str(e)
