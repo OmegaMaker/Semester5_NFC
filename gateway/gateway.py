@@ -2,27 +2,13 @@ from flask import Flask, request, render_template_string, jsonify
 import requests
 import logging
 import google.cloud.logging 
-from google.cloud.logging.handlers import CloudLoggingHandler, setup_logging
-
+from google.cloud.logging.handlers import setup_logging
 
 app = Flask(__name__)
 
-""" # Console logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
-"""
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-setup_logging(logger)
-
-# Google Cloud Logging
-client = google.cloud.logging.Client()
-handler = CloudLoggingHandler(client)
-logger.addHandler(handler)
-
+setup_logging(logger) # Sets up logging to Google Cloud
 
 last_received = "Nothing received yet."
 
