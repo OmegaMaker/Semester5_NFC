@@ -2,7 +2,8 @@ from flask import Flask, request, render_template_string, jsonify
 import requests
 import logging
 import google.cloud.logging 
-from google.cloud.logging.handlers import CloudLoggingHandler
+from google.cloud.logging.handlers import CloudLoggingHandler, setup_logging
+
 
 app = Flask(__name__)
 
@@ -15,6 +16,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+setup_logging(logger)
 
 # Google Cloud Logging
 client = google.cloud.logging.Client()
