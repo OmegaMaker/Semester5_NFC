@@ -2,13 +2,25 @@ from flask import Flask, request, render_template_string, jsonify
 import requests
 import logging
 import google.cloud.logging 
-from google.cloud.logging.handlers import setup_logging
+from google.cloud.logging.handlers import CloudLoggingHandler
 
 app = Flask(__name__)
 
+""" # Console logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+"""
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-setup_logging(logger) # Sets up logging to Google Cloud
+
+# Google Cloud Logging
+client = google.cloud.logging.Client()
+handler = CloudLoggingHandler(client)
+logger.addHandler(handler)
+
 
 last_received = "Nothing received yet."
 
@@ -53,14 +65,7 @@ def cardScan():
         uid = payload.get("uid")
 
         ip = request.remote_addr
-        logger.info(
-            "POST /card-scan request received",
-            extra={
-                "remote_ip": ip,
-                "payload": payload,
-                "endpoint": "/card-scan"
-            }
-        )
+        logger.info("POST /card-scan request received | Data: %s | IP: %s", payload, ip)
 
         if not payload or "uid" not in payload:
             logger.error(
