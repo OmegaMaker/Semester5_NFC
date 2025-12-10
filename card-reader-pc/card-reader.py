@@ -12,6 +12,7 @@ DOORS = [
     ("d-1.2", "Door 2 - Side"),
     ("d-2.1", "Door 3 - Lab"),
     ("d-2.2", "Door 4 - Office"),
+    ("d-4.0", "Door Secret - Basement"),
     ]
 
 HTML_PAGE = """
@@ -68,7 +69,7 @@ def send():
             except ValueError:
                 return f"Error: Received non-JSON response from server."
         else:
-            return f"Error: Received status code {response.status_code} from server."
+            return f"Error: Received status code {response.test} from server."
     except requests.RequestException as e:
         return f"Error: Could not connect to server. Details: {e}"
     
