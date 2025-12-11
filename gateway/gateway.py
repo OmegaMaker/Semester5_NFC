@@ -60,8 +60,8 @@ def cardScan():
             logger.error("Invalid payload from %s | Data: %s", ip, payload)
             return jsonify({"error": "Invalid JSON payload"}), 400
 
-        # Send data to x for authorization logic
-        response = requests.post("http://receiver-service:8000/authorize", json=payload, timeout=2)
+        # Send data to card-auth for authorization logic
+        response = requests.post("http://card-auth-service:8000/api/verify", json=payload, timeout=5)
         data = response.json()
 
         logger.info("POST to / from gateway | Data: %s", payload)
