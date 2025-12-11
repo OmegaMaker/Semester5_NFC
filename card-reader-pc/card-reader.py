@@ -26,7 +26,7 @@ HTML_PAGE = """
         <label>POST Address:</label><br>
         <input type="text" name="address" value="{{ default_url }}" style="width:400px;"><br><br>
         <label>Select Door:</label><br>
-        <select name="door">
+        <select name="door_id">
             {% for id, name in doors %}
                 <option value="{{ id }}">{{ name }} ({{ id }})</option>
             {% endfor %}
@@ -45,7 +45,7 @@ def index():
 @app.route("/send", methods=["POST"])
 def send():
     post_url = request.form.get("address")
-    door = request.form.get("door", DOORS[0][0])
+    door = request.form.get("door_id", DOORS[0][0])
 
     reader = nfc.Reader()
     reader.connect()
@@ -54,7 +54,7 @@ def send():
     # Hexadecimal representation of UID
     UIDhex = "".join(f"{b:02X}" for b in UID)
 
-    payload = {"uid": UIDhex,"door": door}
+    payload = {"uid": UIDhex,"door_id": door}
 
     try:
         response = requests.post(post_url, json=payload, timeout=5)

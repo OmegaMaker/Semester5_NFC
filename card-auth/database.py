@@ -1,5 +1,8 @@
 from sqlalchemy import create_engine, text
 from datetime import datetime
+import logging
+import google.cloud.logging 
+from google.cloud.logging.handlers import CloudLoggingHandler
 
 DB_USER = "postgres"
 DB_PASSWORD = "Database123!"
@@ -13,6 +16,14 @@ engine = create_engine(
     pool_pre_ping=True,
     connect_args={"sslmode": "require"},
 )
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Google Cloud Logging
+client = google.cloud.logging.Client()
+handler = CloudLoggingHandler(client)
+logger.addHandler(handler)
 
 # --------------------------------------------------
 # FETCH CARD
@@ -49,6 +60,7 @@ def fetch_doors_for_access_level(level: int):
 def verify_access(uid: str, door_id: str) -> bool:
     card = fetch_card(uid)
     if card is None:
+        logger.error("verify_access: No valid card received")
         return False
 
     # ------------------------
@@ -60,8 +72,10 @@ def verify_access(uid: str, door_id: str) -> bool:
     valid_to = card["valid_to"]
 
     if valid_from and now < valid_from:
+        logger.error("verify_access: Card not yet valid")
         return False
     if valid_to and now > valid_to:
+        logger.error("verify_access: Card has expired")
         return False
 
     # ------------------------
@@ -76,6 +90,8 @@ def verify_access(uid: str, door_id: str) -> bool:
     extra = card["extra_door_access"] or []
 
     has_extra_access = door_id in extra
+
+    logger.info("verify_access: Verification complete | Access: %s", has_normal_access or has_extra_access)
 
     # ------------------------
     # RESULT

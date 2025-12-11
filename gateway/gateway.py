@@ -64,8 +64,8 @@ def cardScan():
         response = requests.post("http://card-auth-service:8000/api/verify", json=payload, timeout=5)
         data = response.json()
 
-        logger.info("POST to / from gateway | Data: %s", payload)
-        logger.info("POST response from x | Data: %s", data)
+        logger.info("POST to card-auth-receiver/api/veryify from gateway | Data: %s", payload)
+        logger.info("POST response from card-auth | Data: %s", data)
 
         # Return response to card reader
         return jsonify({
