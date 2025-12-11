@@ -1,0 +1,88 @@
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - '-f'
+      - card-auth/Dockerfile
+      - '-t'
+      - 'europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/card-auth:$SHORT_SHA'
+      - card-auth
+    id: Build
+
+  # Step 2: Push the Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - 'europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/card-auth:$SHORT_SHA'
+    id: Push
+
+  # Step 3: Get GKE credentials
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - container
+      - clusters
+      - get-credentials
+      - $_CLUSTER_NAME
+      - '--zone'
+      - $_CLUSTER_LOCATION
+      - '--project'
+      - $PROJECT_ID
+    id: Get-Credentials
+
+  # Step 4: Delete service if exists (to ensure a clean state for apply)
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - delete
+      - service
+      - card-auth-service
+      - '--namespace=default'
+      - '--ignore-not-found=true' 
+    id: Delete-Service-If-Exists
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+  # Step 5: Apply Deployment and Service Manifests
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - apply
+      - '-f'
+      - 'card-auth/kubernetes/deployment.yaml'
+      - '-f'
+      - 'card-auth/kubernetes/service.yaml'
+    id: Apply-Manifests
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+  # Step 6: Update the image of your GKE Deployment
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - set
+      - image
+      - 'deployment/card-auth-deployment'
+      - 'card-auth-container=europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/card-auth:$SHORT_SHA'
+      - '--namespace=default'
+    id: Update-Deployment-Image
+    env: 
+      - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+  # Step 7: Wait for the deployment rollout to complete
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - rollout
+      - status
+      - 'deployment/card-auth-deployment'
+    id: Wait-Rollout
+    env: 
+      - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_LOCATION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  
+substitutions:
+  _CLUSTER_LOCATION: europe-north2-b
+  _CLUSTER_NAME: nfc-1

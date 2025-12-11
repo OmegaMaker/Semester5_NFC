@@ -6,13 +6,6 @@ from google.cloud.logging.handlers import CloudLoggingHandler
 
 app = Flask(__name__)
 
-""" # Console logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
-"""
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -37,6 +30,7 @@ HTML = """
 </html>
 """
 
+# Page for testing connection
 @app.route("/", methods=["GET"])
 def view():
     return render_template_string(HTML, data=last_received)
@@ -47,17 +41,12 @@ def receive():
     last_received = request.get_data(as_text=True)
 
     ip = request.remote_addr
-    logger.info(
-        "POST /test request received",
-        extra={
-            "remote_ip": ip,
-            "received_data": last_received,
-            "endpoint": "/test"
-        }
-    )
+    logger.info("POST to /test from %s | Data: %s", ip, last_received)
 
     return "OK", 200
 
+# Data received from card reader
+# Returns access True/False
 @app.route("/card-scan", methods=["POST"])
 def cardScan():
     try:
@@ -65,47 +54,27 @@ def cardScan():
         uid = payload.get("uid")
 
         ip = request.remote_addr
-        logger.info("POST /card-scan request received | Data: %s | IP: %s", payload, ip)
+        logger.info("POST to /card-scan from %s | Data: %s", ip, payload)
 
         if not payload or "uid" not in payload:
-            logger.error(
-                "Invalid JSON data for card scan",
-                extra={
-                    "remote_ip": ip,
-                    "received_payload": payload,
-                    "error_reason": "Missing UID or invalid payload"
-                }
-            )
+            logger.error("Invalid payload from %s | Data: %s", ip, payload)
             return jsonify({"error": "Invalid JSON payload"}), 400
 
+        # Send data to x for authorization logic
         response = requests.post("http://receiver-service:8000/authorize", json=payload, timeout=2)
         data = response.json()
 
-        logger.info(
-            "POST /authorize request received",
-            extra={
-                "authorization_request_data": payload,
-                "authorization_response": data,
-                "target_service": "receiver-service",
-                "endpoint": "/authorize"
-            }
-        )
+        logger.info("POST to / from gateway | Data: %s", payload)
+        logger.info("POST response from x | Data: %s", data)
 
+        # Return response to card reader
         return jsonify({
             "access": data.get("access"),
             "uid": uid
         }), 200
 
     except Exception as e:
-        logger.error(
-            "Error during card scan process",
-            extra={
-                "error_message": str(e),
-                "error_type": type(e).__name__,
-                "remote_ip": request.remote_addr,
-                "endpoint": "/card-scan"
-            }
-        )
+        logger.error("Error during scan: %s", str(e))
         print("CARD SCAN ERROR:", repr(e))
         return jsonify({
             "error": str(e)
