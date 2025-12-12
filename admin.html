@@ -1,0 +1,275 @@
+<!--http://localhost:8000/admin-->
+<!--uvicorn main:app --reload-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NFC Admin</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 20px; }
+    h1 { margin-bottom: 16px; }
+    h2 { margin: 0 0 8px; }
+    h3 { margin: 8px 0; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.9fr 1fr;
+      gap: 32px;
+    }
+    .block {
+      border: 1px solid #aaa;
+      padding: 8px;
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 12px;
+      padding: 3px;
+      margin-top: 2px;
+    }
+    button {
+      font-size: 12px;
+      padding: 4px 8px;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 4px 6px;
+    }
+    th {
+      background: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>ADMIN PAGE</h1>
+  <div class="grid">
+    <!-- LEFT: CARDS ------------------------------------------------------- -->
+    <div>
+      <div class="block">
+        <h2>CARD EDITOR</h2>
+        <label>UID
+          <input id="card_uid">
+        </label>
+        <label>NAME
+          <input id="card_name">
+        </label>
+        <label for="card_access_level">ACCESS LEVEL</label>
+          <select id="card_access_level">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+        </label>
+        <label>VALID FROM
+          <input id="card_valid_from" type="datetime-local">
+        </label>
+        <label>VALID TO
+          <input id="card_valid_to" type="datetime-local">
+        </label>
+        <label>EXTRA DOORS 
+          <input id="card_extra_doors">
+        </label>
+        <button onclick="saveCard()">SAVE</button>
+      </div>
+
+      <div class="block">
+        <h3>CARDS</h3>
+        <table id="cards_table">
+          <thead>
+          <tr>
+            <th>UID</th>
+            <th>NAME</th>
+            <th>ACCESS LEVEL</th>
+            <th>VALID FROM</th>
+            <th>VALID TO</th>
+            <th>EXTRA DOORS</th>
+            <th></th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT: DOORS ------------------------------------------------------ -->
+    <div>
+      <div class="block">
+        <h2>DOOR EDITOR</h2>
+        <label>DOOR ID
+          <input id="door_id">
+        </label>
+        <label>NAME
+          <input id="door_name">
+        </label>
+        <label>ACCESS LEVEL
+          <input id="door_access_levels">
+        </label>
+        <button onclick="saveDoor()">SAVE</button>
+      </div>
+
+      <div class="block">
+        <h3>DOORS</h3>
+        <table id="doors_table">
+          <thead>
+          <tr>
+            <th>DOOR ID</th>
+            <th>NAME</th>
+            <th>ACCESS LEVELS</th>
+            <th></th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -------- CARDS --------
+    //Convert time thing   
+    function isoToDatetimeLocal(value) {
+      if (!value) return "";
+      value = value.trim();
+      return value.slice(0, 16);
+    }
+    function datetimeLocalToISO(value) {
+      if (!value) return null;
+      return value + ":00Z"; 
+    }
+
+    async function loadCards() {
+      const res = await fetch('/api/cards');
+      const data = await res.json();
+      const tbody = document.querySelector('#cards_table tbody');
+      tbody.innerHTML = '';
+      data.cards.forEach(card => {
+        const tr = document.createElement('tr');
+        const extra = Array.isArray(card.extra_door_access)
+          ? card.extra_door_access.join(', ')
+          : (card.extra_door_access || '');
+        tr.innerHTML = `
+          <td>${card.uid}</td>
+          <td>${card.owner_name ?? ''}</td>
+          <td>${card.access_level ?? ''}</td>
+          <td>${card.valid_from ?? ''}</td>
+          <td>${card.valid_to ?? ''}</td>
+          <td>${extra}</td>
+          <td><button onclick="editCard('${card.uid.replace(/'/g, "\\'")}')">EDIT</button></td>
+          <td><button onclick="deleteCard('${card.uid.replace(/'/g, "\\'")}')">DELETE</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function editCard(uid) {
+      const rows = document.querySelectorAll('#cards_table tbody tr');
+      for (const tr of rows) {
+        if (tr.children[0].textContent === uid) {
+          document.getElementById('card_uid').value = tr.children[0].textContent;
+          document.getElementById('card_name').value = tr.children[1].textContent;
+          document.getElementById('card_access_level').value = tr.children[2].textContent;
+          document.getElementById('card_valid_from').value = isoToDatetimeLocal(tr.children[3].textContent);
+          document.getElementById('card_valid_to').value = isoToDatetimeLocal(tr.children[4].textContent);
+          document.getElementById('card_extra_doors').value = tr.children[5].textContent;
+          break;
+        }
+      }
+    }
+
+    async function saveCard() {
+      const payload = {
+        uid: document.getElementById('card_uid').value,
+        owner_name: document.getElementById('card_name').value,
+        access_level: document.getElementById('card_access_level').value,
+        valid_from: document.getElementById('card_valid_from').value,
+        valid_to: document.getElementById('card_valid_to').value,
+        extra_doors: document.getElementById('card_extra_doors').value,
+      };
+      await fetch('/api/cards/save', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+      });
+      await loadCards();
+    }
+
+    async function deleteCard(uid) {
+      await fetch(`/api/cards/${uid}`, { method: 'DELETE' });
+      await loadCards();
+    }
+
+    // -------- DOORS --------
+    async function loadDoors() {
+      const res = await fetch('/api/doors');
+      const data = await res.json();
+      const tbody = document.querySelector('#doors_table tbody');
+      tbody.innerHTML = '';
+      data.doors.forEach(door => {
+        const levels = Array.isArray(door.access_levels)
+          ? door.access_levels.join(', ')
+          : (door.access_levels || '');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${door.door_id}</td>
+          <td>${door.name ?? ''}</td>
+          <td>${levels}</td>
+          <td><button onclick="editDoor('${door.door_id.replace(/'/g, "\\'")}')">EDIT</button></td>
+          <td><button onclick="deleteDoor('${door.door_id.replace(/'/g, "\\'")}')">DELETE</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function editDoor(door_id) {
+      const rows = document.querySelectorAll('#doors_table tbody tr');
+      for (const tr of rows) {
+        if (tr.children[0].textContent === door_id) {
+          document.getElementById('door_id').value = tr.children[0].textContent;
+          document.getElementById('door_name').value = tr.children[1].textContent;
+          document.getElementById('door_access_levels').value = tr.children[2].textContent;
+          break;
+        }
+      }
+    }
+
+    async function saveDoor() {
+      const payload = {
+        door_id: document.getElementById('door_id').value,
+        name: document.getElementById('door_name').value,
+        access_levels: document.getElementById('door_access_levels').value,
+      };
+      await fetch('/api/doors/save', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+      });
+      await loadDoors();
+    }
+
+    async function deleteDoor(door_id) {
+      await fetch(`/api/doors/${door_id}`, { method: 'DELETE' });
+      await loadDoors();
+    }
+
+    // init
+    loadCards();
+    loadDoors();
+  </script>
+</body>
+</html>
