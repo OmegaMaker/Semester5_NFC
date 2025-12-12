@@ -4,7 +4,8 @@ kind: Service
 metadata:
   name: admin-service # Name of Kubernetes Service
   annotations: 
-    networking.gke.io/load-balancer-ip-addresses: 34.2.48.63
+    networking.gke.io/load-balancer-ip-addresses: admin-static-ip
+    cloud.google.com/load-balancer-type: "External"
   labels:
     app: admin
 spec:
