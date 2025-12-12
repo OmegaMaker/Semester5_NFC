@@ -1,0 +1,6 @@
+SQLAlchemy
+fastapi
+uvicorn
+psycopg2-binary
+logging
+google-cloud-logging

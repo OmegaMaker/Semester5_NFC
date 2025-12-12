@@ -47,7 +47,7 @@ def fetch_doors_for_access_level(level: int):
     query = text("""
         SELECT door_id
         FROM access_level_doors
-        WHERE access_level = :lvl
+        WHERE access_level <= :lvl
     """)
     with engine.connect() as conn:
         result = conn.execute(query, {"lvl": level}).fetchall()
@@ -72,10 +72,10 @@ def verify_access(uid: str, door_id: str) -> bool:
     valid_to = card["valid_to"]
 
     if valid_from and now < valid_from:
-        logger.error("verify_access: Card not yet valid")
+        logger.warning("verify_access: Card not yet valid")
         return False
     if valid_to and now > valid_to:
-        logger.error("verify_access: Card has expired")
+        logger.warning("verify_access: Card has expired")
         return False
 
     # ------------------------

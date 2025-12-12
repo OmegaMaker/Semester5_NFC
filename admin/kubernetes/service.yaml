@@ -1,0 +1,18 @@
+# admin/kubernetes/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service # Name of Kubernetes Service
+  annotations: 
+    networking.gke.io/load-balancer-ip-addresses: 34.2.48.63
+  labels:
+    app: admin
+spec:
+  selector:
+    app: admin 
+  ports:
+    - protocol: TCP
+      port: 80 # The port the Service will listen on 
+      targetPort: 8000 # The port the Flask app listens on inside the container
+      name: http # Name needed
+  type: LoadBalancer # Can change to LoadBalancer for testing
