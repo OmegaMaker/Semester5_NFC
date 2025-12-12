@@ -4,7 +4,8 @@ kind: Service
 metadata:
   name: gateway-service # Name of Kubernetes Service
   annotations: 
-    networking.gke.io/load-balancer-ip-addresses: 34.2.48.216
+    cloud.google.com/load-balancer-ip: gateway-static-ip
+    cloud.google.com/load-balancer-type: "External"
   labels:
     app: gateway
 spec:

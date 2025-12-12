@@ -67,14 +67,14 @@ def api_save_card(payload: dict):
         valid_to=valid_to,
         extra_door_access=extra_door_access,
     )
-    logger.info("Card updated | Data: %s, %s, %s, %s, %s, %s", uid, owner_name, access_level, valid_from, valid_to, extra_door_access)
+    logger.info("Admin: Card updated | Data: %s, %s, %s, %s, %s, %s", uid, owner_name, access_level, valid_from, valid_to, extra_door_access)
     return {"status": "ok"}
 
 
 @app.delete("/api/cards/{uid}")
 def api_delete_card(uid: str):
     delete_card(uid)
-    logger.info("Card %s deleted", uid)
+    logger.info("Admin: %s deleted", uid)
     return {"status": "deleted"}
 
 
@@ -109,22 +109,22 @@ def api_save_door(payload: dict):
                 )
 
     upsert_door(door_id=door_id, name=name, access_levels=access_levels)
-    logger.info("Door updated | Data: %s, %s, %s", door_id, name, access_levels)
+    logger.info("Admin: Door updated | Data: %s, %s, %s", door_id, name, access_levels)
     return {"status": "ok"}
 
 
 @app.delete("/api/doors/{door_id}")
 def api_delete_door(door_id: str):
     delete_door(door_id)
-    logger.info("Door %s deleted", door_id)
+    logger.info("Admin: Door %s deleted", door_id)
     return {"status": "deleted"}
 
 # ----------------- ADMIN HTML -----------------
 
-@app.get("/admin", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 def admin_page():
     html_path = Path(__file__).with_name("admin.html")
     if not html_path.exists():
         raise HTTPException(status_code=500, detail="admin.html not found")
-    logger.info("/admin page loaded")
+    logger.info("Admin: Page loaded")
     return html_path.read_text(encoding="utf-8")
