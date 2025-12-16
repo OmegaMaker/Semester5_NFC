@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pathlib import Path
+import logging
+import google.cloud.logging 
+from google.cloud.logging.handlers import CloudLoggingHandler
 
 from database import (
-    verify_access,
     fetch_all_cards,
     upsert_card,
     delete_card,
@@ -14,18 +16,13 @@ from database import (
 
 app = FastAPI()
 
-# ----------------- GATEWAY: VERIFY -----------------
-@app.post("/api/verify")
-def verify(payload: dict):
-    uid = payload.get("uid")
-    door_id = payload.get("door_id")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-    if not uid or not door_id:
-        raise HTTPException(status_code=400, detail="Missing uid or door_id")
-
-    allowed = verify_access(uid, door_id)
-
-    return {"access": allowed}
+# Google Cloud Logging
+client = google.cloud.logging.Client()
+handler = CloudLoggingHandler(client)
+logger.addHandler(handler)
 
 # ----------------- ADMIN: CARDS -----------------
 @app.get("/api/cards")
@@ -70,12 +67,14 @@ def api_save_card(payload: dict):
         valid_to=valid_to,
         extra_door_access=extra_door_access,
     )
+    logger.info("Admin: Card updated | Data: %s, %s, %s, %s, %s, %s", uid, owner_name, access_level, valid_from, valid_to, extra_door_access)
     return {"status": "ok"}
 
 
 @app.delete("/api/cards/{uid}")
 def api_delete_card(uid: str):
     delete_card(uid)
+    logger.info("Admin: %s deleted", uid)
     return {"status": "deleted"}
 
 
@@ -110,19 +109,22 @@ def api_save_door(payload: dict):
                 )
 
     upsert_door(door_id=door_id, name=name, access_levels=access_levels)
+    logger.info("Admin: Door updated | Data: %s, %s, %s", door_id, name, access_levels)
     return {"status": "ok"}
 
 
 @app.delete("/api/doors/{door_id}")
 def api_delete_door(door_id: str):
     delete_door(door_id)
+    logger.info("Admin: Door %s deleted", door_id)
     return {"status": "deleted"}
 
 # ----------------- ADMIN HTML -----------------
 
-@app.get("/admin", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 def admin_page():
     html_path = Path(__file__).with_name("admin.html")
     if not html_path.exists():
         raise HTTPException(status_code=500, detail="admin.html not found")
+    logger.info("Admin: Page loaded")
     return html_path.read_text(encoding="utf-8")

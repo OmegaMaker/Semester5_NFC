@@ -1,0 +1,19 @@
+# admin/kubernetes/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service # Name of Kubernetes Service
+  annotations:
+    cloud.google.com/load-balancer-ip: admin-static-ip
+    cloud.google.com/load-balancer-type: "External"
+  labels:
+    app: admin
+spec:
+  selector:
+    app: admin
+  ports:
+    - protocol: TCP
+      port: 80 # The port the Service will listen on (for the LoadBalancer)
+      targetPort: 8000 # The port the fastapi app listens on inside the container
+      name: http # Name needed
+  type: LoadBalancer # Ensure this is LoadBalancer

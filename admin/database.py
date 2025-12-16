@@ -36,7 +36,7 @@ def fetch_doors_for_access_level(level: int):
     query = text("""
         SELECT door_id
         FROM access_level_doors
-        WHERE access_level = :lvl
+        WHERE access_level <= :lvl
     """)
     with engine.connect() as conn:
         result = conn.execute(query, {"lvl": level}).fetchall()
