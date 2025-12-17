@@ -10,7 +10,7 @@ spec:
     app: gateway 
   ports:
     - protocol: TCP
-      port: 8080 # The port the Service will listen on 
+      port: 80 # The port the Service will listen on 
       targetPort: 8080 # The port the Flask app listens on inside the container
       name: http # Name needed
   type: LoadBalancer # Can change to LoadBalancer for testing
