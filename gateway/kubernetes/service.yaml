@@ -3,6 +3,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: gateway-service # Name of Kubernetes Service
+  annotations: 
+    cloud.google.com/load-balancer-ip: gateway-static-ip
+    cloud.google.com/load-balancer-type: "External"
   labels:
     app: gateway
 spec:
@@ -14,4 +17,3 @@ spec:
       targetPort: 8080 # The port the Flask app listens on inside the container
       name: http # Name needed
   type: LoadBalancer # Can change to LoadBalancer for testing
-  loadBalancerIP: 34.2.48.216
