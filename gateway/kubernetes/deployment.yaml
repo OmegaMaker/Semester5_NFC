@@ -19,7 +19,7 @@ spec:
       - name: gateway-container
         image: europe-north2-docker.pkg.dev/$PROJECT_ID/nfc-images/gateway:latest # Placeholder image
         ports:
-        - containerPort: 8080 # The port the Flask app listens on inside the container
+        - containerPort: 443 # The port the Flask app listens on inside the container
         # Add any environment variables, resource limits, etc. here if needed
         # env:
         resources:
@@ -29,3 +29,12 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "200m"
+        volumeMounts:
+          - name: tls-certs
+            mountPath: /certs
+            readOnly: true
+      volumes:
+        - name: tls-certs
+          secret:
+            secretName: https-tls
+
