@@ -123,6 +123,7 @@ def api_delete_door(door_id: str):
 
 @app.get("/", response_class=HTMLResponse)
 def admin_page():
+    print("Test")
     html_path = Path(__file__).with_name("admin.html")
     if not html_path.exists():
         raise HTTPException(status_code=500, detail="admin.html not found")
